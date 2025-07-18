@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>AI判定ページ</title>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+  </head>
+  <body>
+    <h1>製品判定</h1>
+    <video id="webcam" autoplay playsinline width="224" height="224"></video>
+    <div id="result">判定結果：なし</div>
+    <script type="text/javascript">
+      const URL = "./"; // モデルファイルのあるフォルダ
+      let model, webcam;
+
+      async function init() {
+        const modelURL = URL + "model.json";
+        const metadataURL = URL + "metadata.json";
+        model = await tmImage.load(modelURL, metadataURL);
+        webcam = new tmImage.Webcam(224, 224, true);
+        await webcam.setup();
+        await webcam.play();
+        document.getElementById("webcam").appendChild(webcam.canvas);
+        loop();
+      }
+
+      async function loop() {
+        webcam.update();
+        const prediction = await model.predict(webcam.canvas);
+        let resultText = "判定結果：";
+        prediction.forEach(p => {
+          resultText += `${p.className} (${(p.probability * 100).toFixed(1)}%) `;
+        });
+        document.getElementById("result").innerText = resultText;
+        requestAnimationFrame(loop);
+      }
+
+      init();
+    </script>
+  </body>
+</html>
